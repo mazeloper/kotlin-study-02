@@ -22,8 +22,10 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         if (auth.currentUser == null) {
-            val intent = Intent(this, LoginActivity::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, LoginActivity::class.java))
+        } else {
+            startActivity(Intent(this, LikeActivity::class.java))
+
         }
     }
 }

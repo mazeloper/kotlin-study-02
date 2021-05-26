@@ -49,6 +49,8 @@ dependencies {
 
     // FirebaseAuth
     implementation 'com.google.firebase:firebase-auth-ktx'
+    // FirebaseRealtime
+    implementation 'com.google.firebase:firebase-database-ktx'
 
     implementation 'com.facebook.android:facebook-login:8.2.0'
 }
