@@ -51,6 +51,8 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth-ktx'
     // FirebaseRealtime
     implementation 'com.google.firebase:firebase-database-ktx'
-
+    // Facebook Login
     implementation 'com.facebook.android:facebook-login:8.2.0'
+    // tinder swipe animation
+    implementation "com.yuyakaido.android:card-stack-view:2.3.4"
 }
