@@ -31,7 +31,7 @@ class LoginActivity : AppCompatActivity() {
         findViewById(R.id.passwordEditText)
     }
     private val loginButton: Button by lazy {
-        findViewById(R.id.loginButton)
+        findViewById(R.id.logoutButton)
     }
     private val signUpButton: Button by lazy {
         findViewById(R.id.signUpButton)

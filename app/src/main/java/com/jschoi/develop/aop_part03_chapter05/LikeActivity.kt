@@ -1,8 +1,10 @@
 package com.jschoi.develop.aop_part03_chapter05
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -44,7 +46,6 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
                     showNameInputPopup()
                     return
                 }
-
                 getUnSelectedUsers()
                 // TODO 유저정보를 갱신
             }
@@ -54,7 +55,25 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
             }
         })
 
+        initViews()
         initCardStackView()
+    }
+
+    private fun initViews() {
+        findViewById<Button>(R.id.signOutButton).apply {
+            this.setOnClickListener {
+                auth.signOut()
+                startActivity(Intent(this@LikeActivity, MainActivity::class.java))
+                finish()
+            }
+        }
+
+        findViewById<Button>(R.id.matchListButton).apply {
+            this.setOnClickListener {
+                startActivity(Intent(this@LikeActivity, MatchedUserActivity::class.java))
+                finish()
+            }
+        }
     }
 
 
@@ -97,7 +116,7 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
                     }
                     cardItems.add(CardItem(userId, name))
                     cardAdapter.submitList(cardItems)
-                    cardAdapter.notifyDataSetChanged()
+                    // cardAdapter.notifyDataSetChanged()
                 }
             }
 
@@ -106,7 +125,7 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
                     it.name = snapshot.child("name").value.toString()
                 }
                 cardAdapter.submitList(cardItems)
-                cardAdapter.notifyDataSetChanged()
+                // cardAdapter.notifyDataSetChanged()
             }
 
             override fun onChildRemoved(snapshot: DataSnapshot) {
@@ -147,11 +166,11 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
 
     override fun onCardSwiped(direction: Direction?) {
         when (direction) {
-            Direction.Left -> {
+            Direction.Right -> {
                 Log.d("TAG", "#########################")
                 like()
             }
-            Direction.Right -> {
+            Direction.Left -> {
                 Log.w("TAG", "#########################")
                 disLike()
             }
@@ -170,8 +189,30 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
             .child(getCurrentUserID())
             .setValue(true)
 
+        saveMatchIfOtherUserLikedMe(card.userId)
+
         // TODO 매칭이 된 시점을 봐야한다.
         Toast.makeText(this, " ${card.name}님을 Like 하였습니다.", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun saveMatchIfOtherUserLikedMe(otherUserId: String) {
+        // 상대방에 유저 DB 가져온다.
+        val otherUserDB =
+            userDB.child(getCurrentUserID()).child("likedBy").child("like").child(otherUserId)
+        otherUserDB.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.value == true) {
+                    userDB.child(getCurrentUserID()).child("likedBy").child("match")
+                        .child(otherUserId).setValue(true)
+
+                    userDB.child(otherUserId).child("likedBy").child("match")
+                        .child(getCurrentUserID()).setValue(true)
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+            }
+        })
     }
 
     private fun disLike() {
