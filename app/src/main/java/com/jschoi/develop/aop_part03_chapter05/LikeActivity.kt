@@ -36,13 +36,13 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_like)
 
-        userDB = Firebase.database.reference.child("Users")
+        userDB = Firebase.database.reference.child(DBKey.USERS)
 
         val currentUserDB = userDB.child(getCurrentUserID())
         currentUserDB.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 // 이름이 변경되었을 때, 다른 사용자에게 좋아요를 했을때
-                if (snapshot.child("name").value == null) {
+                if (snapshot.child(DBKey.NAME).value == null) {
                     showNameInputPopup()
                     return
                 }
@@ -105,14 +105,16 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
         userDB.addChildEventListener(object : ChildEventListener {
             override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
                 // 현재 보고있는 유저아이디가 내가 아니며(상대방) 좋아요,싫어요 버튼을 누른적이 없는 유저
-                if (snapshot.child("userId").value != getCurrentUserID()
-                    && snapshot.child("likedBy").child("like").hasChild(getCurrentUserID()).not()
-                    && snapshot.child("likedBy").child("disLike").hasChild(getCurrentUserID()).not()
+                if (snapshot.child(DBKey.USER_ID).value != getCurrentUserID()
+                    && snapshot.child(DBKey.LIKED_BY).child(DBKey.LIKE).hasChild(getCurrentUserID())
+                        .not()
+                    && snapshot.child(DBKey.LIKED_BY).child(DBKey.DIS_LIKE)
+                        .hasChild(getCurrentUserID()).not()
                 ) {
-                    val userId = snapshot.child("userId").value.toString()
+                    val userId = snapshot.child(DBKey.USER_ID).value.toString()
                     var name = "undecided"
-                    if (snapshot.child("name").value != null) {
-                        name = snapshot.child("name").value.toString()
+                    if (snapshot.child(DBKey.NAME).value != null) {
+                        name = snapshot.child(DBKey.NAME).value.toString()
                     }
                     cardItems.add(CardItem(userId, name))
                     cardAdapter.submitList(cardItems)
@@ -122,7 +124,7 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
 
             override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
                 cardItems.find { it.userId == snapshot.key }?.let {
-                    it.name = snapshot.child("name").value.toString()
+                    it.name = snapshot.child(DBKey.NAME).value.toString()
                 }
                 cardAdapter.submitList(cardItems)
                 // cardAdapter.notifyDataSetChanged()
@@ -146,8 +148,8 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
         val currentUserDB = userDB.child(userId)
         val user = mutableMapOf<String, Any>()
 
-        user["userId"] = userId
-        user["name"] = name
+        user[DBKey.USER_ID] = userId
+        user[DBKey.NAME] = name
         currentUserDB.updateChildren(user)
 
         // TODO 유저정보를 가져와라
@@ -184,8 +186,8 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
         cardItems.removeFirst()
 
         userDB.child(card.userId) // 상대방의 유저 ID
-            .child("likedBy")
-            .child("like")
+            .child(DBKey.LIKED_BY)
+            .child(DBKey.LIKE)
             .child(getCurrentUserID())
             .setValue(true)
 
@@ -198,14 +200,15 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
     private fun saveMatchIfOtherUserLikedMe(otherUserId: String) {
         // 상대방에 유저 DB 가져온다.
         val otherUserDB =
-            userDB.child(getCurrentUserID()).child("likedBy").child("like").child(otherUserId)
+            userDB.child(getCurrentUserID()).child(DBKey.LIKED_BY).child(DBKey.LIKE)
+                .child(otherUserId)
         otherUserDB.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.value == true) {
-                    userDB.child(getCurrentUserID()).child("likedBy").child("match")
+                    userDB.child(getCurrentUserID()).child(DBKey.LIKED_BY).child("match")
                         .child(otherUserId).setValue(true)
 
-                    userDB.child(otherUserId).child("likedBy").child("match")
+                    userDB.child(otherUserId).child(DBKey.LIKED_BY).child("match")
                         .child(getCurrentUserID()).setValue(true)
                 }
             }
@@ -221,8 +224,8 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
         cardItems.removeFirst()
 
         userDB.child(card.userId) // 상대방의 유저 ID
-            .child("likedBy")
-            .child("like")
+            .child(DBKey.LIKED_BY)
+            .child(DBKey.LIKE)
             .child(getCurrentUserID())
             .setValue(true)
 

@@ -26,7 +26,7 @@ class MatchedUserActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_match)
 
-        userDB = Firebase.database.reference.child("Users")
+        userDB = Firebase.database.reference.child(DBKey.USERS)
 
         getMatchUsers()
         initMatchedUserRecyclerView()
@@ -34,7 +34,7 @@ class MatchedUserActivity : AppCompatActivity() {
     }
 
     private fun getMatchUsers() {
-        val matchedDB = userDB.child(getCurrentUserID()).child("likedBy").child("match")
+        val matchedDB = userDB.child(getCurrentUserID()).child(DBKey.LIKED_BY).child("match")
         matchedDB.addChildEventListener(object : ChildEventListener {
             override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
                 if (snapshot.key?.isNotEmpty() == true) {
@@ -59,7 +59,7 @@ class MatchedUserActivity : AppCompatActivity() {
     private fun getMatchUser(userId: String) {
         userDB.child(userId).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                cardItems.add(CardItem(userId, snapshot.child("name").value.toString()))
+                cardItems.add(CardItem(userId, snapshot.child(DBKey.NAME).value.toString()))
                 matchedUserAdapter.submitList(cardItems)
             }
 
